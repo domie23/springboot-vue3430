@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.YiqingquyuDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.yiqingquyu_name as yiqingquyuName
+        ,a.yiqingquyu_types as yiqingquyuTypes
+        ,a.yiqingquyu_content as yiqingquyuContent
+        ,a.insert_time as insertTime
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.YiqingquyuView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+
+        FROM yiqingquyu  a
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test=" params.yiqingquyuName != '' and params.yiqingquyuName != null and params.yiqingquyuName != 'null' ">
+                and a.yiqingquyu_name like CONCAT('%',#{params.yiqingquyuName},'%')
+            </if>
+            <if test="params.yiqingquyuTypes != null and params.yiqingquyuTypes != ''">
+                and a.yiqingquyu_types = #{params.yiqingquyuTypes}
+            </if>
+            <if test=" params.yiqingquyuContent != '' and params.yiqingquyuContent != null and params.yiqingquyuContent != 'null' ">
+                and a.yiqingquyu_content like CONCAT('%',#{params.yiqingquyuContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(a.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>

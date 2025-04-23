@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.dao.ZhuzhaiDao">
+
+    <!-- 通用查询结果列 -->
+    <sql id="Base_Column_List">
+        a.id as id
+        ,a.zhuzhai_name as zhuzhaiName
+        ,a.zhuzhai_types as zhuzhaiTypes
+        ,a.shequ_id as shequId
+        ,a.zhuzhai_content as zhuzhaiContent
+        ,a.create_time as createTime
+    </sql>
+    <select id="selectListView" parameterType="map" resultType="com.entity.view.ZhuzhaiView" >
+        SELECT
+        <include refid="Base_Column_List" />
+
+--         级联表的字段
+        ,shequ.shequ_name as shequName
+        ,shequ.shequ_types as shequTypes
+        ,shequ.shequ_content as shequContent
+
+        FROM zhuzhai  a
+        left JOIN shequ shequ ON a.shequ_id = shequ.id
+
+        <where>
+            <if test="params.ids != null">
+                and a.id in
+                <foreach item="item" index="index" collection="params.ids" open="(" separator="," close=")">
+                #{item}
+                </foreach>
+            </if>
+            <if test=" params.zhuzhaiName != '' and params.zhuzhaiName != null and params.zhuzhaiName != 'null' ">
+                and a.zhuzhai_name like CONCAT('%',#{params.zhuzhaiName},'%')
+            </if>
+            <if test="params.zhuzhaiTypes != null and params.zhuzhaiTypes != ''">
+                and a.zhuzhai_types = #{params.zhuzhaiTypes}
+            </if>
+            <if test="params.shequId != null and params.shequId != ''">
+                and (
+                    a.shequ_id = #{params.shequId}
+                )
+            </if>
+            <if test=" params.zhuzhaiContent != '' and params.zhuzhaiContent != null and params.zhuzhaiContent != 'null' ">
+                and a.zhuzhai_content like CONCAT('%',#{params.zhuzhaiContent},'%')
+            </if>
+
+                <!-- 判断社区信息的id不为空 -->
+            <if test=" params.shequIdNotNull != '' and params.shequIdNotNull != null and params.shequIdNotNull != 'null' ">
+                and a.shequ_id IS NOT NULL
+            </if>
+            <if test=" params.shequName != '' and params.shequName != null and params.shequName != 'null' ">
+                and shequ.shequ_name like CONCAT('%',#{params.shequName},'%')
+            </if>
+            <if test="params.shequTypes != null  and params.shequTypes != ''">
+                and shequ.shequ_types = #{params.shequTypes}
+            </if>
+
+            <if test=" params.shequContent != '' and params.shequContent != null and params.shequContent != 'null' ">
+                and shequ.shequ_content like CONCAT('%',#{params.shequContent},'%')
+            </if>
+            <if test=" params.insertTimeStart != '' and params.insertTimeStart != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(shequ.insert_time) >= UNIX_TIMESTAMP(#{params.insertTimeStart}) ]]>
+            </if>
+            <if test=" params.insertTimeEnd != '' and params.insertTimeEnd != null ">
+                <![CDATA[  and UNIX_TIMESTAMP(shequ.insert_time) <= UNIX_TIMESTAMP(#{params.insertTimeEnd}) ]]>
+            </if>
+        </where>
+
+        order by a.${params.orderBy} desc 
+    </select>
+
+</mapper>
